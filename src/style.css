@@ -14,3 +14,117 @@ html, body {
 canvas {
     display: block;
 }
+
+#hud {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    user-select: none;
+}
+
+.crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+}
+
+    .crosshair::before, .crosshair::after {
+        content: '';
+        position: absolute;
+        background: #0f0;
+    }
+
+    .crosshair::before {
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        transform: translateY(-50%);
+    }
+
+    .crosshair::after {
+        left: 50%;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        transform: translateX(-50%);
+    }
+
+.stats {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    font-size: 18px;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.ammo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 24px;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.killfeed {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 14px;
+    text-align: right;
+}
+
+    .killfeed div {
+        margin-bottom: 4px;
+        text-shadow: 1px 1px 2px #000;
+    }
+
+#cheat-menu {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #0f0;
+    color: #0f0;
+    padding: 12px;
+    font-family: monospace;
+    font-size: 13px;
+    pointer-events: auto;
+    display: none;
+    z-index: 100;
+    min-width: 180px;
+}
+
+    #cheat-menu h3 {
+        margin-bottom: 8px;
+        border-bottom: 1px solid #0f0;
+        padding-bottom: 4px;
+    }
+
+    #cheat-menu label {
+        display: block;
+        cursor: pointer;
+        padding: 2px 0;
+    }
+
+    #cheat-menu input {
+        margin-right: 6px;
+    }
+
+.lock-prompt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    text-align: center;
+    background: rgba(0,0,0,.7);
+    padding: 20px 30px;
+    border: 1px solid #0f0;
+    color: #0f0;
+}
