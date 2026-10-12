@@ -57,7 +57,7 @@ export class CheatManager {
     }
   }
 
- update(player: Player, camera: THREE.PerspectiveCamera, enemies: Enemy[], _weapon: Weapon, dt: number) {
+  update(player: Player, camera: THREE.PerspectiveCamera, enemies: Enemy[], weapon: Weapon, dt: number) {
     // Spinbot
     if (this.state.spinbot) {
       player.yaw += this.spinSpeed * dt;
@@ -91,7 +91,6 @@ export class CheatManager {
         );
         camera.quaternion.slerp(desired, this.aimbotSmoothing);
 
-        // Sync player yaw/pitch so movement stays aligned
         const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
         player.yaw = euler.y;
         player.pitch = euler.x;
@@ -110,10 +109,5 @@ export class CheatManager {
         weapon.fire(camera, enemies);
       }
     }
-  }
-
-  // Called by weapon before applying recoil/ammo
-  modifyDamage(weapon: Weapon) {
-    // nothing here yet, placeholder for future
   }
 }

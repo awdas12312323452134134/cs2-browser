@@ -8,7 +8,7 @@ export class HUD {
   lockEl: HTMLElement;
   menuEl: HTMLElement;
 
-  constructor(private cheats: CheatManager, private onToggle: (k: CheatKey) => void) {
+  constructor(private onToggle: (k: CheatKey) => void) {
     this.root = document.getElementById('hud')!;
 
     this.lockEl = document.createElement('div');

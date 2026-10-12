@@ -74,10 +74,9 @@ for (let i = 0; i < 6; i++) {
 
 // ---- Cheats ----
 const cheats = new CheatManager();
-const hud = new HUD(cheats, (key) => {
+const hud = new HUD((key) => {
   cheats.toggle(key, enemies);
 });
-
 // ---- Input ----
 const keys: Record<string, boolean> = {};
 document.addEventListener('keydown', e => {
