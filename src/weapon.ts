@@ -5,7 +5,7 @@ export class Weapon {
   raycaster = new THREE.Raycaster();
   damage = 25;
   headshotMul = 4;
-  fireRate = 100; // ms between shots
+  fireRate = 100;
   magSize = 30;
   ammo = 30;
   reserve = 90;
@@ -15,7 +15,7 @@ export class Weapon {
     return now - this.lastShot >= this.fireRate && this.ammo > 0;
   }
 
-  fire(camera: THREE.Camera, enemies: Enemy[]): { hit: boolean; headshot: boolean } {
+  fire(camera: THREE.Camera, enemies: Enemy[], onHit?: (dmg: number, headshot: boolean) => void): { hit: boolean; headshot: boolean } {
     const now = performance.now();
     if (!this.canFire(now)) return { hit: false, headshot: false };
 
@@ -27,7 +27,7 @@ export class Weapon {
     this.raycaster.set(camera.position, dir);
 
     const meshes: THREE.Object3D[] = [];
-    enemies.forEach(e => { if (e.alive) { meshes.push(e.mesh); } });
+    enemies.forEach(e => { if (e.alive) meshes.push(e.mesh); });
 
     const hits = this.raycaster.intersectObjects(meshes, true);
     if (hits.length > 0) {
@@ -35,11 +35,18 @@ export class Weapon {
       const enemy = hitObj.userData.enemy as Enemy;
       if (enemy) {
         const isHead = hitObj.userData.isHead === true;
-        enemy.takeDamage(this.damage * (isHead ? this.headshotMul : 1));
+        const dmg = this.damage * (isHead ? this.headshotMul : 1);
+        enemy.takeDamage(dmg);
+        onHit?.(dmg, isHead);
         return { hit: true, headshot: isHead };
       }
     }
     return { hit: false, headshot: false };
+  }
+
+  // Overload for cheats to apply custom damage
+  applyDamage(enemy: Enemy, dmg: number) {
+    enemy.takeDamage(dmg);
   }
 
   reload() {

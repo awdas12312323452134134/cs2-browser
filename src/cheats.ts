@@ -6,20 +6,41 @@ import type { Weapon } from './weapon';
 export type CheatKey =
   | 'aimbot' | 'spinbot' | 'triggerbot'
   | 'wallhack' | 'noRecoil' | 'infiniteAmmo'
-  | 'godmode' | 'speedhack';
+  | 'godmode' | 'speedhack' | 'instakill';
+
+export interface CheatSettings {
+  aimbotFov: number;
+  aimbotSmoothing: number;
+  aimbotTargetBone: 'head' | 'body';
+  spinSpeed: number;
+  triggerbotDelay: number;
+  triggerbotFov: number;
+  speedhackMul: number;
+  wallhackOpacity: number;
+  instakillDmg: number;
+}
 
 export class CheatManager {
   state: Record<CheatKey, boolean> = {
     aimbot: false, spinbot: false, triggerbot: false,
     wallhack: false, noRecoil: false, infiniteAmmo: false,
-    godmode: false, speedhack: false,
+    godmode: false, speedhack: false, instakill: false,
   };
 
-  aimbotFov = 180;
-  aimbotSmoothing = 1;
-  spinSpeed = 30;
+  settings: CheatSettings = {
+    aimbotFov: 180,
+    aimbotSmoothing: 0.5,
+    aimbotTargetBone: 'head',
+    spinSpeed: 30,
+    triggerbotDelay: 0,
+    triggerbotFov: 2,
+    speedhackMul: 3,
+    wallhackOpacity: 0.7,
+    instakillDmg: 1000,
+  };
 
   private originalMats = new Map<THREE.Mesh, { depthTest: boolean; depthWrite: boolean; transparent: boolean; opacity: number }>();
+  private lastTrigger = 0;
 
   toggle(key: CheatKey, enemies: Enemy[]) {
     this.state[key] = !this.state[key];
@@ -41,7 +62,7 @@ export class CheatManager {
           m.depthTest = false;
           m.depthWrite = false;
           m.transparent = true;
-          m.opacity = 0.7;
+          m.opacity = this.settings.wallhackOpacity;
           (obj as THREE.Mesh).renderOrder = 999;
         } else {
           const orig = this.originalMats.get(obj as THREE.Mesh);
@@ -60,7 +81,7 @@ export class CheatManager {
   update(player: Player, camera: THREE.PerspectiveCamera, enemies: Enemy[], weapon: Weapon, dt: number) {
     // Spinbot
     if (this.state.spinbot) {
-      player.yaw += this.spinSpeed * dt;
+      player.yaw += this.settings.spinSpeed * dt;
     }
 
     // Aimbot
@@ -70,18 +91,20 @@ export class CheatManager {
       camera.getWorldDirection(camDir);
 
       let best: Enemy | null = null;
-      let bestAngle = this.aimbotFov / 2;
+      let bestAngle = this.settings.aimbotFov / 2;
       let bestPos: THREE.Vector3 | null = null;
 
       for (const e of enemies) {
         if (!e.alive) continue;
-        const head = e.getHeadWorldPos();
-        const toEnemy = head.clone().sub(camPos).normalize();
+        const target = this.settings.aimbotTargetBone === 'head'
+          ? e.getHeadWorldPos()
+          : e.mesh.position.clone().add(new THREE.Vector3(0, 0.9, 0));
+        const toEnemy = target.clone().sub(camPos).normalize();
         const angle = THREE.MathUtils.radToDeg(camDir.angleTo(toEnemy));
         if (angle < bestAngle) {
           bestAngle = angle;
           best = e;
-          bestPos = head;
+          bestPos = target;
         }
       }
 
@@ -89,7 +112,7 @@ export class CheatManager {
         const desired = new THREE.Quaternion().setFromRotationMatrix(
           new THREE.Matrix4().lookAt(camPos, bestPos, camera.up)
         );
-        camera.quaternion.slerp(desired, this.aimbotSmoothing);
+        camera.quaternion.slerp(desired, this.settings.aimbotSmoothing);
 
         const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
         player.yaw = euler.y;
@@ -99,15 +122,25 @@ export class CheatManager {
 
     // Triggerbot
     if (this.state.triggerbot && enemies.length) {
+      const now = performance.now();
+      if (now - this.lastTrigger < this.settings.triggerbotDelay) return;
+
       const camDir = new THREE.Vector3();
       camera.getWorldDirection(camDir);
       const rc = new THREE.Raycaster(camera.position, camDir);
       const meshes: THREE.Object3D[] = [];
       enemies.forEach(e => { if (e.alive) meshes.push(e.mesh); });
       const hits = rc.intersectObjects(meshes, true);
-      if (hits.length && weapon.canFire(performance.now())) {
+      if (hits.length && weapon.canFire(now)) {
         weapon.fire(camera, enemies);
+        this.lastTrigger = now;
       }
     }
+  }
+
+  // Called by main loop to compute damage with instakill
+  damageFor(base: number, isHead: boolean, weapon: Weapon): number {
+    if (this.state.instakill) return this.settings.instakillDmg;
+    return base * (isHead ? weapon.headshotMul : 1);
   }
 }
