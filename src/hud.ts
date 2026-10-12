@@ -1,5 +1,4 @@
-import type { CheatManager, CheatKey } from './cheats';
-
+import type { CheatKey } from './cheats';
 export class HUD {
   root: HTMLElement;
   statsEl: HTMLElement;
