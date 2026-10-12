@@ -28,7 +28,7 @@ export class CheatManager {
 
   applyWallhack(enemies: Enemy[]) {
     for (const e of enemies) {
-      e.mesh.traverse(obj => {
+      e.mesh.traverse((obj: THREE.Object3D) => {
         const m = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial;
         if (!m) return;
         if (this.state.wallhack) {
@@ -57,7 +57,7 @@ export class CheatManager {
     }
   }
 
-  update(player: Player, camera: THREE.PerspectiveCamera, enemies: Enemy[], weapon: Weapon, dt: number) {
+ update(player: Player, camera: THREE.PerspectiveCamera, enemies: Enemy[], _weapon: Weapon, dt: number) {
     // Spinbot
     if (this.state.spinbot) {
       player.yaw += this.spinSpeed * dt;

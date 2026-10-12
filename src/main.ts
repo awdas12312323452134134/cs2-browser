@@ -119,7 +119,6 @@ const clock = new THREE.Clock();
 function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), 0.1);
-  const now = performance.now();
 
   // Movement
   const speed = player.speed * (cheats.state.speedhack ? 3 : 1);
